@@ -1,22 +1,31 @@
-BALANCE: dict[str, float] = {}
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
-def is_wallet_exists(wallet_name: str) -> bool:
-    return wallet_name in BALANCE
+from app.models import Wallet
 
-def add_income(wallet_name: str, amount: float) -> float:
-    BALANCE[wallet_name] += amount
-    return BALANCE[wallet_name]
+def is_wallet_exists(db: Session, wallet_name: str) -> bool:
+    stmt = select(Wallet.id).where(Wallet.name == wallet_name)
+    return db.scalar(stmt) is not None
 
-def add_expense(wallet_name: str, amount: float) -> float:
-    BALANCE[wallet_name] -= amount
-    return BALANCE[wallet_name]
+def get_wallet(db: Session, wallet_name: str) -> Wallet:
+    stmt = select(Wallet).where(Wallet.name == wallet_name)
+    return db.scalars(stmt).one()
 
-def get_wallet_balance(wallet_name: str) -> float:
-    return BALANCE[wallet_name]
+def add_income(db: Session, wallet_name: str, amount: float) -> Wallet:
+    wallet = get_wallet(db, wallet_name)
+    wallet.balance += amount
+    return wallet
 
-def get_all_wallets() -> dict[str, float]:
-    return BALANCE.copy()
+def add_expense(db: Session, wallet_name: str, amount: float) -> Wallet:
+    wallet = get_wallet(db, wallet_name)
+    wallet.balance -= amount
+    return wallet
 
-def create_wallet(wallet_name: str, initial_balance: float) -> float:
-    BALANCE[wallet_name] = initial_balance
-    return BALANCE[wallet_name]
+def get_all_wallets(db: Session) -> list[Wallet]:
+    stmt = select(Wallet)
+    return db.execute(stmt).scalars().all()
+
+def create_wallet(db: Session, wallet_name: str, initial_balance: float) -> Wallet:
+    wallet = Wallet(name=wallet_name, balance=initial_balance)
+    db.add(wallet)
+    return wallet
