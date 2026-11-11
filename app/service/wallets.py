@@ -1,31 +1,37 @@
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
-from app.repository import wallets as wallets_repository
+
+from app.repository.wallets import WalletRepository
 from app.schemas import CreateWalletRequest
 
-def get_wallet(db: Session, wallet_name: str | None = None) -> dict[str, float]:
-    if wallet_name is None:
-        wallets = wallets_repository.get_all_wallets(db)
-        return {"total_balance": sum(wallet.balance for wallet in wallets)}
-    if wallets_repository.is_wallet_exists(db, wallet_name) is False:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Wallet '{wallet_name}' not found"
-        )
-    wallet = wallets_repository.get_wallet(db, wallet_name)
-    
-    return {"wallet": wallet.name, "balance": wallet.balance}
 
-def create_wallet(db: Session, request: CreateWalletRequest):
-    if wallets_repository.is_wallet_exists(db, request.name) is True:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Wallet '{request.name}' already exists"
+class WalletService:
+    def __init__(self, wallets: WalletRepository) -> None:
+        self.wallets = wallets
+
+    def get_wallet(self, wallet_name: str | None = None) -> dict[str, str | float]:
+        if wallet_name is None:
+            wallets = self.wallets.get_all_wallets()
+            return {"total_balance": sum(wallet.balance for wallet in wallets)}
+
+        wallet = self.wallets.get_wallet(wallet_name)
+        if wallet is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Wallet '{wallet_name}' not found",
             )
-    wallet = wallets_repository.create_wallet(db, request.name, request.initial_balance)
-    
-    return {
-        "message": f"Wallet '{request.name}' created successfully",
-        "wallet": request.name,
-        "balance": wallet.balance
-    }
+
+        return {"wallet": wallet.name, "balance": wallet.balance}
+
+    def create_wallet(self, request: CreateWalletRequest) -> dict[str, str | float]:
+        if self.wallets.get_wallet(request.name) is not None:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Wallet '{request.name}' already exists",
+            )
+
+        wallet = self.wallets.create_wallet(request.name, request.initial_balance)
+        return {
+            "message": f"Wallet '{request.name}' created successfully",
+            "wallet": wallet.name,
+            "balance": wallet.balance,
+        }
