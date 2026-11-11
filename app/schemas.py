@@ -1,5 +1,25 @@
 from pydantic import BaseModel, Field, field_validator
 
+class UserRequest(BaseModel):
+    login: str = Field(..., max_length=127)
+    email: str = Field(..., max_length=127)
+    # password: str = Field(..., min_length=8, max_length=127)
+
+    @field_validator("login")
+    def login_must_not_be_empty(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("Logins must not be empty")
+        return v
+
+    @field_validator("email")
+    def email_must_not_be_empty(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("Email must not be empty")
+        return v
+
+class UserResponse(UserRequest):
+    model_config = {"from_attributes": True, "populate_by_name": True}
+    id: int
 
 class OperationRequest(BaseModel):
     wallet_name: str = Field(..., max_length=127)
