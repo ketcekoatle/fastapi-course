@@ -8,8 +8,8 @@ class OperationService:
     def __init__(self, wallets: WalletRepository) -> None:
         self.wallets = wallets
 
-    def add_income(self, operation: OperationRequest) -> dict[str, str | float | None]:
-        wallet = self.wallets.get_wallet(operation.wallet_name)
+    def add_income(self, operation: OperationRequest, user_id: int) -> dict[str, str | float | None]:
+        wallet = self.wallets.get_wallet(user_id, operation.wallet_name)
         if wallet is None:
             raise HTTPException(
                 status_code=404,
@@ -24,8 +24,8 @@ class OperationService:
             "balance": wallet.balance,
         }
 
-    def add_expense(self, operation: OperationRequest) -> dict[str, str | float | None]:
-        wallet = self.wallets.get_wallet(operation.wallet_name)
+    def add_expense(self, operation: OperationRequest, user_id: int) -> dict[str, str | float | None]:
+        wallet = self.wallets.get_wallet(user_id, operation.wallet_name)
         if wallet is None:
             raise HTTPException(
                 status_code=404,
