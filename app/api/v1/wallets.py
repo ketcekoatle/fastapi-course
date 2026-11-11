@@ -1,13 +1,21 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from app.dependency import get_db
 from app.schemas import CreateWalletRequest
 from app.service import wallets as wallets_service
 
 router = APIRouter()
 
 @router.get("/balance")
-def get_balance(wallet_name: str | None = None):
-    return wallets_service.get_wallet(wallet_name)
+def get_balance(
+    wallet_name: str | None = None,
+    db: Session = Depends(get_db, scope="function"),
+):
+    return wallets_service.get_wallet(db, wallet_name)
 
 @router.post("/wallets")
-def create_wallet(request: CreateWalletRequest):
-    return wallets_service.create_wallet(request)
+def create_wallet(
+    request: CreateWalletRequest,
+    db: Session = Depends(get_db, scope="function"),
+):
+    return wallets_service.create_wallet(db, request)
