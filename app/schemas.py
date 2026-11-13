@@ -1,5 +1,7 @@
 from pydantic import BaseModel, Field, field_validator
 
+from app.enum import CurrencyEnum, OperationTypeEnum
+
 class UserRequest(BaseModel):
     login: str = Field(..., max_length=127)
     email: str = Field(..., max_length=127)
@@ -41,6 +43,7 @@ class OperationRequest(BaseModel):
 class CreateWalletRequest(BaseModel):
     name: str = Field(..., max_length=127)
     initial_balance: float = 0
+    currency: CurrencyEnum = CurrencyEnum.UAH
 
     @field_validator("initial_balance")
     def initial_balance_must_be_non_negative(cls, v: float) -> float:
@@ -53,3 +56,24 @@ class CreateWalletRequest(BaseModel):
         if not v.strip():
             raise ValueError("Wallet name must not be empty")
         return v
+
+class WalletResponse(BaseModel):
+    model_config = {"from_attributes": True}
+    id: int
+    name: str
+    balance: float
+    currency: CurrencyEnum
+
+class TotalBalanceResponse(BaseModel):
+    total_balance: float
+
+class OperationResponse(BaseModel):
+    model_config = {"from_attributes": True}
+    id: int
+    amount: float
+    type: OperationTypeEnum
+    wallet_id: int
+    currency: CurrencyEnum
+    category: str | None
+    subcategory: str | None
+    created_at: str

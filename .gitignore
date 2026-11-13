@@ -32,6 +32,9 @@ dist/
 *.log
 *.tmp
 
+# Local database files
+*.db
+
 # Editor and operating-system files
 .vscode/
 .idea/

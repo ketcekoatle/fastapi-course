@@ -5,6 +5,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
+from app.repository.operations import OperationRepository
 from app.schemas import UserResponse
 from app.repository.users import UserRepository
 from app.repository.wallets import WalletRepository
@@ -29,7 +30,7 @@ def get_wallet_service(
 def get_operation_service(
     db: Session = Depends(get_db, scope="function"),
 ) -> OperationService:
-    return OperationService(WalletRepository(db))
+    return OperationService(WalletRepository(db), OperationRepository(db))
 
 
 def get_user_service(

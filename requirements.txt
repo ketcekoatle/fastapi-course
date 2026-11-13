@@ -2,3 +2,6 @@ fastapi
 pydantic
 uvicorn
 sqlalchemy
+httpx2
+pytest
+pytest-cov
